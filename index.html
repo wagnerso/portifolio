@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wagner Santos de Oliveira — Portfólio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F5F2EC;
+    --ink: #1E2420;
+    --ink-soft: #565F58;
+    --accent: #33415C;
+    --accent-warm: #93712A;
+    --line: #D8D2C4;
+    --card: #FBFAF7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-decoration-color: var(--line); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--accent); }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  header.hero {
+    padding: 96px 0 64px;
+    animation: rise 0.6s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    header.hero { animation: none; }
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h1.name {
+    font-family: 'Newsreader', serif;
+    font-weight: 500;
+    font-size: 2.6rem;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .role {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0 0 28px;
+    max-width: 46ch;
+  }
+
+  .contact-links {
+    display: flex;
+    gap: 20px;
+    font-size: 0.95rem;
+  }
+
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 0;
+  }
+
+  section { padding: 56px 0; }
+
+  h2.section-title {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 0 0 20px;
+    color: var(--ink);
+  }
+
+  .about p {
+    max-width: 60ch;
+    color: var(--ink-soft);
+    font-size: 1rem;
+  }
+
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 32px;
+  }
+
+  .project-card h3 {
+    font-family: 'Newsreader', serif;
+    font-weight: 500;
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+  }
+
+  .project-tag {
+    color: var(--accent-warm);
+    font-size: 0.9rem;
+    margin: 0 0 20px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .meta-item dt {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+
+  .meta-item dd {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .project-card p {
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  footer {
+    padding: 48px 0 80px;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  footer .contact-links { margin-top: 12px; }
+
+  @media (max-width: 480px) {
+    header.hero { padding: 64px 0 40px; }
+    h1.name { font-size: 2.1rem; }
+    .project-card { padding: 24px; }
+    .meta-row { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <header class="hero">
+      <h1 class="name">Wagner Santos de Oliveira</h1>
+      <p class="role">Gerente de projetos e, no fundo, um grande gerenciador de expectativas. Aqui reúno iniciativas que ajudei a organizar, tirar do papel ou colocar de pé.</p>
+      <div class="contact-links">
+        <a href="https://www.linkedin.com/in/wsolivera/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:wsoliveira@live.com">wsoliveira@live.com</a>
+      </div>
+    </header>
+
+    <hr class="rule">
+
+    <section class="about">
+      <h2 class="section-title">Sobre</h2>
+      <p>Trabalho com gerenciamento de projetos, conectando pessoas, prazos e prioridades para que as coisas de fato aconteçam. Atualmente estou retomando os estudos sobre desenvolvimento apoiado por agentes de IA, explorando como essas ferramentas podem apoiar a criação de produtos do zero — da ideia ao protótipo.</p>
+    </section>
+
+    <hr class="rule">
+
+    <section class="projects">
+      <h2 class="section-title">Projetos</h2>
+
+      <div class="project-card">
+        <h3>Conta Clara</h3>
+        <p class="project-tag">Jornada educativa de organização financeira pessoal</p>
+
+        <dl class="meta-row">
+          <div class="meta-item">
+            <dt>Meu papel</dt>
+            <dd>Idealização e produção da plataforma e das aulas</dd>
+          </div>
+          <div class="meta-item">
+            <dt>Ferramentas</dt>
+            <dd>Claude, Gemini, Gamma e Replit</dd>
+          </div>
+        </dl>
+
+        <p>O Conta Clara nasceu para ajudar a entender melhor o próprio dinheiro de um jeito simples e sem julgamento: uma trilha de aulas, registro de gastos, metas e conteúdos sobre salário bruto e líquido. Atuei como idealizador do produto e produtor das aulas, estruturando o conteúdo e a jornada da usuária, enquanto o Claude, o Gemini e o Gamma apoiaram a escrita, a organização das ideias e a criação de material de apoio, e o Replit serviu de ambiente para prototipar a plataforma. O projeto também marcou a retomada dos meus estudos sobre como agentes de IA podem apoiar todas as etapas de construção de um produto.</p>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <footer>
+      <p>Aberto a conversas sobre gestão de projetos, produtos e o que dá pra construir com apoio de IA.</p>
+      <div class="contact-links">
+        <a href="https://www.linkedin.com/in/wsolivera/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:wsoliveira@live.com">wsoliveira@live.com</a>
+      </div>
+    </footer>
+  </div>
+
+</body>
+</html>
