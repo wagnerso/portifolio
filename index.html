@@ -69,8 +69,28 @@
 
   .contact-links {
     display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     font-size: 0.95rem;
+  }
+
+  .contact-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .contact-links a:hover {
+    color: var(--accent);
+  }
+
+  .contact-links svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
   }
 
   hr.rule {
@@ -94,6 +114,12 @@
     max-width: 60ch;
     color: var(--ink-soft);
     font-size: 1rem;
+  }
+
+  .projects-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
   .project-card {
@@ -164,8 +190,21 @@
       <h1 class="name">Wagner Santos de Oliveira</h1>
       <p class="role">Gerente de projetos e, no fundo, um grande gerenciador de expectativas. Aqui reúno iniciativas que ajudei a organizar, tirar do papel ou colocar de pé.</p>
       <div class="contact-links">
-        <a href="https://www.linkedin.com/in/wsolivera/" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="mailto:wsoliveira@live.com">wsoliveira@live.com</a>
+        <a href="https://www.linkedin.com/in/wsolivera/" target="_blank" rel="noopener">
+          <!-- LinkedIn Icon -->
+          <svg viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://instagram.com/wagner.so" target="_blank" rel="noopener">
+          <!-- Instagram Icon -->
+          <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.4 5.6 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.6 18.4 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+          Instagram
+        </a>
+        <a href="mailto:wsoliveira@live.com">
+          <!-- Mail Icon -->
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          wsoliveira@live.com
+        </a>
       </div>
     </header>
 
@@ -173,7 +212,7 @@
 
     <section class="about">
       <h2 class="section-title">Sobre</h2>
-      <p>Trabalho com gerenciamento de projetos, conectando pessoas, prazos e prioridades para que as coisas de fato aconteçam. Atualmente estou retomando os estudos sobre desenvolvimento apoiado por agentes de IA, explorando como essas ferramentas podem apoiar a criação de produtos do zero — da ideia ao protótipo.</p>
+      <p>Trabalho com gerenciamento de projetos, conectando pessoas, prazos e prioridades para que as coisas de fato aconteçam. Atualmente retomo os estudos sobre desenvolvimento apoiado por agentes de IA, explorando como essas ferramentas podem apoiar a criação de produtos do zero — da ideia ao protótipo.</p>
     </section>
 
     <hr class="rule">
@@ -181,22 +220,63 @@
     <section class="projects">
       <h2 class="section-title">Projetos</h2>
 
-      <div class="project-card">
-        <h3>Conta Clara</h3>
-        <p class="project-tag">Jornada educativa de organização financeira pessoal</p>
+      <div class="projects-grid">
+        <!-- Conta Clara -->
+        <div class="project-card">
+          <h3>Conta Clara</h3>
+          <p class="project-tag">Jornada educativa de organização financeira pessoal</p>
 
-        <dl class="meta-row">
-          <div class="meta-item">
-            <dt>Meu papel</dt>
-            <dd>Idealização e produção da plataforma e das aulas</dd>
-          </div>
-          <div class="meta-item">
-            <dt>Ferramentas</dt>
-            <dd>Claude, Gemini, Gamma e Replit</dd>
-          </div>
-        </dl>
+          <dl class="meta-row">
+            <div class="meta-item">
+              <dt>Meu papel</dt>
+              <dd>Idealização e produção</dd>
+            </div>
+            <div class="meta-item">
+              <dt>Ferramentas</dt>
+              <dd>Claude, Gemini, Gamma e Replit</dd>
+            </div>
+          </dl>
 
-        <p>O Conta Clara nasceu para ajudar a entender melhor o próprio dinheiro de um jeito simples e sem julgamento: uma trilha de aulas, registro de gastos, metas e conteúdos sobre salário bruto e líquido. Atuei como idealizador do produto e produtor das aulas, estruturando o conteúdo e a jornada da usuária, enquanto o Claude, o Gemini e o Gamma apoiaram a escrita, a organização das ideias e a criação de material de apoio, e o Replit serviu de ambiente para prototipar a plataforma. O projeto também marcou a retomada dos meus estudos sobre como agentes de IA podem apoiar todas as etapas de construção de um produto.</p>
+          <p>O Conta Clara nasceu para ajudar a entender melhor o próprio dinheiro de um jeito simples e sem julgamento: trilha de aulas, registro de gastos e metas. Atuei como idealizador do produto e produtor das aulas, estruturando o conteúdo e a jornada, com apoio de IA na escrita e prototipação em Replit.</p>
+        </div>
+
+        <!-- Kognis -->
+        <div class="project-card">
+          <h3>Kognis</h3>
+          <p class="project-tag">Automação de pontuação para ferramentas de avaliação psicológica</p>
+
+          <dl class="meta-row">
+            <div class="meta-item">
+              <dt>Meu papel</dt>
+              <dd>Concepção e desenvolvimento iOS</dd>
+            </div>
+            <div class="meta-item">
+              <dt>Ferramentas</dt>
+              <dd>Swift, SwiftUI e IA</dd>
+            </div>
+          </dl>
+
+          <p>Aplicativo em Swift/SwiftUI voltado para estruturar e automatizar o processo de cálculo e pontuação de ferramentas de avaliação psicológica, garantindo agilidade e precisão técnica no fluxo de trabalho.</p>
+        </div>
+
+        <!-- Aduan.IA -->
+        <div class="project-card">
+          <h3>Aduan.IA</h3>
+          <p class="project-tag">Processos aduaneiros e automação de inteligência operacional</p>
+
+          <dl class="meta-row">
+            <div class="meta-item">
+              <dt>Meu papel</dt>
+              <dd>Gestão e arquitetura de processos</dd>
+            </div>
+            <div class="meta-item">
+              <dt>Foco</dt>
+              <dd>Sistemas de faturamento e operações portuárias</dd>
+            </div>
+          </dl>
+
+          <p>Iniciativa focada na otimização e automação de fluxos complexos em processos aduaneiros e sistemas de faturamento, integrando eficiência operacional e tecnologia aplicada ao cenário portuário.</p>
+        </div>
       </div>
     </section>
 
@@ -205,8 +285,18 @@
     <footer>
       <p>Aberto a conversas sobre gestão de projetos, produtos e o que dá pra construir com apoio de IA.</p>
       <div class="contact-links">
-        <a href="https://www.linkedin.com/in/wsolivera/" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="mailto:wsoliveira@live.com">wsoliveira@live.com</a>
+        <a href="https://www.linkedin.com/in/wsolivera/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://instagram.com/wagner.so" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.4 5.6 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.6 18.4 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+          Instagram
+        </a>
+        <a href="mailto:wsoliveira@live.com">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          wsoliveira@live.com
+        </a>
       </div>
     </footer>
   </div>
