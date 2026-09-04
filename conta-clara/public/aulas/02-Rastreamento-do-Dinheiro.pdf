@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rastreamento do Dinheiro - Conta Clara</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Segoe UI', system-ui, sans-serif; 
+      background: #F5F2EC; 
+      color: #3D2E1F;
+      padding: 40px 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 8px; color: #4A5D4A; }
+    .date { color: #8B8680; margin-bottom: 24px; }
+    .content { background: white; padding: 32px; border-radius: 12px; border: 1px solid #E2DDD5; }
+    h2 { font-size: 1.25rem; margin: 24px 0 12px; color: #4A5D4A; }
+    p { line-height: 1.8; margin-bottom: 16px; }
+    .note { 
+      background: rgba(74, 93, 74, 0.1); 
+      padding: 16px; 
+      border-radius: 8px; 
+      margin-top: 24px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Rastreamento do Dinheiro</h1>
+    <p class="date">Aula 02 - 26/08</p>
+    
+    <div class="content">
+      <p>Agora que entendemos nossa mente, precisamos entender nossa realidade. Aprenda o método prático para saber exatamente para onde o seu dinheiro está indo, sem complicação e sem se sentir culpado por cada gasto.</p>
+      
+      <h2>Objetivos da Aula</h2>
+      <p>Aprender a rastrear seus gastos diários e identificar padrões de consumo.</p>
+      
+      <h2>Conteúdo</h2>
+      <p>Um método simples e eficaz para monitorar para onde seu dinheiro está indo, sem complicação.</p>
+      
+      <div class="note">
+        <strong>Nota:</strong> Este é um arquivo de exemplo. Substitua pelo PDF real da aula.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
