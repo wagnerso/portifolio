@@ -310,44 +310,6 @@
       color: var(--white);
     }
     
-    /* Foco da Semana */
-    .foco-card {
-      background: rgba(74, 93, 74, 0.05);
-      border: 1px solid rgba(74, 93, 74, 0.2);
-    }
-    
-    .foco-proximo {
-      margin: 12px 0;
-    }
-    
-    .foco-proximo label {
-      font-size: 0.875rem;
-      color: var(--muted-foreground);
-      display: block;
-      margin-bottom: 4px;
-    }
-    
-    /* Check-in */
-    .checkin h2 {
-      font-family: 'Fraunces', Georgia, serif;
-      font-size: 1.25rem;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-    
-    .checkin .subtitle {
-      font-family: 'Fraunces', Georgia, serif;
-      font-style: italic;
-      font-size: 1.1rem;
-      margin-bottom: 4px;
-    }
-    
-    .checkin .hint {
-      font-size: 0.875rem;
-      color: var(--muted-foreground);
-      margin-bottom: 24px;
-    }
-    
     .form-group {
       margin-bottom: 16px;
     }
@@ -492,39 +454,6 @@
     }
     
     .material-arrow {
-      color: var(--muted-foreground);
-    }
-    
-    /* Glossario */
-    .glossario-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    
-    .glossario-num {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(74, 93, 74, 0.1);
-      color: var(--moss);
-      font-size: 0.875rem;
-      font-weight: 500;
-      flex-shrink: 0;
-    }
-    
-    .glossario-content h3 {
-      font-family: 'Fraunces', Georgia, serif;
-      font-size: 1.1rem;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    
-    .glossario-content p {
-      font-size: 0.875rem;
       color: var(--muted-foreground);
     }
     
@@ -1100,7 +1029,6 @@
         4: { concluida: false, itens: [false, false] },
         5: { concluida: false, itens: [false, false] }
       },
-      checkin: JSON.parse(localStorage.getItem('conta-clara-checkin') || 'null'),
       gastos: JSON.parse(localStorage.getItem('conta-clara-gastos') || '[]'),
       expandedAula: null,
       aulaDetalhe: null,
@@ -1228,8 +1156,6 @@
           </div>
         </div>
 
-        ${renderCheckin()}
-
         <nav class="nav">
           <button class="nav-btn ${state.activeTab === 'aulas' ? 'active' : ''}" data-tab="aulas">
             ${icons.book}
@@ -1251,48 +1177,6 @@
         ${state.activeTab === 'aulas' ? renderAulas() : ''}
         ${state.activeTab === 'materiais' ? renderMateriais() : ''}
         ${state.activeTab === 'glossario' ? renderGlossario() : ''}
-      `;
-    }
-
-    function renderCheckin() {
-      const c = state.checkin || {};
-      return `
-        <div class="card checkin">
-          <h2 class="font-serif">Reflexão da semana</h2>
-          <p class="subtitle font-serif">Como foi sua semana?</p>
-          <p class="hint">Registre o que fizer sentido para você. Não precisa preencher tudo perfeitamente.</p>
-          
-          <div class="form-group">
-            <label>O que você conseguiu fazer?</label>
-            <textarea id="checkin-1" placeholder="Ex.: observei meus gastos por alguns dias.">${c.oQueFes || ''}</textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>O que mais dificultou?</label>
-            <textarea id="checkin-2" placeholder="Ex.: esqueci de anotar os gastos pequenos.">${c.oQueDificultou || ''}</textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>O que você percebeu sobre seu dinheiro?</label>
-            <textarea id="checkin-3" placeholder="Ex.: os gastos por impulso aparecem à noite.">${c.oQuePercebeu || ''}</textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>Qual é seu compromisso para a próxima semana?</label>
-            <textarea id="checkin-4" placeholder="Ex.: vou registrar cada gasto no mesmo dia.">${c.compromisso || ''}</textarea>
-          </div>
-          
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <button class="btn-primary" id="save-checkin">
-              ${icons.save}
-              Salvar check-in
-            </button>
-            <div class="success-msg hidden" id="checkin-success">
-              ${icons.checkCircle}
-              <span>Salvo com sucesso!</span>
-            </div>
-          </div>
-        </div>
       `;
     }
 
@@ -1334,41 +1218,6 @@
         `;
       });
 
-      const aulaAtual = aulas.find(a => a.status === 'atual');
-      if (aulaAtual) {
-        const state_aula = state.checklist[aulaAtual.id] || { concluida: false, itens: aulaAtual.checklist.map(() => false) };
-        const todosConcluidos = state_aula.itens.every(Boolean);
-        const proximaAcao = aulaAtual.checklist.find((_, idx) => !state_aula.itens[idx]);
-        
-        html += `
-          <div class="card foco-card">
-            <h3 class="font-serif" style="font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;">Foco da semana</h3>
-            ${todosConcluidos ? `
-              <p style="color: var(--moss); font-weight: 500; margin-bottom: 8px;">Parabéns! Você completou todas as ações desta aula!</p>
-              <p style="font-size: 0.875rem; color: var(--muted-foreground);">Continue assim e prepare-se para a próxima etapa da sua jornada.</p>
-            ` : `
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <span class="aula-num atual">${aulaAtual.id.toString().padStart(2, '0')}</span>
-                <div>
-                  <p style="font-weight: 500;">${aulaAtual.titulo}</p>
-                  <p style="font-size: 0.875rem; color: var(--muted-foreground);">${state_aula.itens.filter(Boolean).length} de ${aulaAtual.checklist.length} ações concluídas</p>
-                </div>
-              </div>
-              ${proximaAcao ? `
-                <div class="foco-proximo">
-                  <label>Próxima ação:</label>
-                  <p style="font-size: 0.875rem;">${proximaAcao}</p>
-                </div>
-              ` : ''}
-              <button class="btn-primary" style="width: 100%;" data-goto-aula="${aulaAtual.id}">
-                Começar ação
-                ${icons.arrowRight}
-              </button>
-            `}
-          </div>
-        `;
-      }
-      
       return `<div style="margin-bottom: 24px;">${html}</div>`;
     }
 
@@ -1494,13 +1343,8 @@
         <div style="display: flex; flex-direction: column; gap: 16px;">
           ${glossario.map(t => `
             <div class="card">
-              <div class="glossario-item">
-                <span class="glossario-num">${t.id.toString().padStart(2, '0')}</span>
-                <div class="glossario-content">
-                  <h3 class="font-serif">${t.titulo}</h3>
-                  <p>${t.descricao}</p>
-                </div>
-              </div>
+              <h3 class="font-serif" style="margin-bottom: 4px;">${t.titulo}</h3>
+              <p style="color: var(--muted-foreground);">${t.descricao}</p>
             </div>
           `).join('')}
         </div>
@@ -2049,13 +1893,8 @@
         <div style="display: flex; flex-direction: column; gap: 16px;">
           ${glossario.map(t => `
             <div class="card">
-              <div class="glossario-item">
-                <span class="glossario-num">${t.id.toString().padStart(2, '0')}</span>
-                <div class="glossario-content">
-                  <h3 class="font-serif">${t.titulo}</h3>
-                  <p>${t.descricao}</p>
-                </div>
-              </div>
+              <h3 class="font-serif" style="margin-bottom: 4px;">${t.titulo}</h3>
+              <p style="color: var(--muted-foreground);">${t.descricao}</p>
             </div>
           `).join('')}
         </div>
@@ -2172,25 +2011,6 @@
           render();
         });
       });
-
-      // Checkin save
-      const saveCheckin = document.getElementById('save-checkin');
-      if (saveCheckin) {
-        saveCheckin.addEventListener('click', () => {
-          const checkin = {
-            oQueFes: document.getElementById('checkin-1').value,
-            oQueDificultou: document.getElementById('checkin-2').value,
-            oQuePercebeu: document.getElementById('checkin-3').value,
-            compromisso: document.getElementById('checkin-4').value,
-            timestamp: Date.now()
-          };
-          state.checkin = checkin;
-          save('checkin', checkin);
-          const success = document.getElementById('checkin-success');
-          success.classList.remove('hidden');
-          setTimeout(() => success.classList.add('hidden'), 3000);
-        });
-      }
 
       // Gastos
       document.querySelectorAll('[data-periodo]').forEach(btn => {
