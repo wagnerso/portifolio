@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kognis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+      <h1>Kognis</h1>
+    </header>
+
+    <div class="forms-grid" style="display:flex;flex-direction:column;gap:12px">
+      <a href="srs2.html" class="form-card srs2" style="text-decoration:none;color:inherit">
+        <h3 style="color:var(--srs2);font-size:1.2rem;font-weight:600;background:rgba(192,57,43,0.08);display:inline-block;padding:4px 12px;border-radius:6px;margin-bottom:8px">SRS-2</h3>
+        <p>Escala de Responsividade Social — avaliando interação social e comportamentos restritos.</p>
+        <div class="meta">
+          <span>65 perguntas</span>
+          <span>4 opções de resposta</span>
+          <span>Período: 6 meses</span>
+        </div>
+      </a>
+
+      <a href="bdefs.html" class="form-card bdefs" style="text-decoration:none;color:inherit">
+        <h3 style="color:var(--bdefs);font-size:1.2rem;font-weight:600;background:rgba(36,113,163,0.08);display:inline-block;padding:4px 12px;border-radius:6px;margin-bottom:8px">BDEFS</h3>
+        <p>Escala de Déficits de Execução Funcional — autorregulação, funções cognitivas e autocontrole.</p>
+        <div class="meta">
+          <span>64 perguntas</span>
+          <span>4 opções de resposta</span>
+          <span>Período: 6 meses</span>
+        </div>
+      </a>
+
+      <a href="bsi.html" class="form-card bsi" style="text-decoration:none;color:inherit">
+        <h3 style="color:var(--bsi);font-size:1.2rem;font-weight:600;background:rgba(39,174,96,0.08);display:inline-block;padding:4px 12px;border-radius:6px;margin-bottom:8px">BSI</h3>
+        <p>Inventário Breve de Sintomas — avaliação de sintomas psicopatológicos.</p>
+        <div class="meta">
+          <span>53 perguntas</span>
+          <span>5 opções de resposta</span>
+          <span>Período: 7 dias</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="disclaimer"><strong>Nota:</strong> Este é um instrumento de triagem. Os resultados não substituem avaliação clínica profissional.</div>
+
+    <footer><p>Desenvolvido por <a href="../index.html">Wagner Santos de Oliveira</a></p></footer>
+  </div>
+  <script>
+    const formStates = JSON.parse(localStorage.getItem('kognis-form-states') || '{}');
+    document.querySelectorAll('.form-card').forEach(card => {
+      const href = card.getAttribute('href');
+      const formId = href.replace('.html', '');
+      const saved = formStates[formId];
+      if (saved && Object.keys(saved.answers).length > 0) {
+        const count = Object.keys(saved.answers).length;
+        const total = formId === 'srs2' ? 65 : formId === 'bdefs' ? 64 : 53;
+        const badge = document.createElement('span');
+        badge.style.cssText = 'color:#93712A;font-weight:500';
+        badge.textContent = count + '/' + total + ' respondidas';
+        card.querySelector('.meta').prepend(badge);
+      }
+    });
+  </script>
+</body>
+</html>
