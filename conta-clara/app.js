@@ -16,8 +16,9 @@ const state = {
   salarioTipo: 'clt',
   salarioBruto: '',
   salarioCarga: '160',
-  salarioInss: '11',
-  salarioIrrf: '15',
+  salarioInss: '10.75',
+  salarioIrrf: '7',
+  salarioContrAssist: '0.31',
   salarioVt: '',
   salarioVr: '',
   salarioOutros: '',
@@ -713,8 +714,9 @@ function renderSalario() {
   const tipoContrato = state.salarioTipo || 'clt';
   const salarioBruto = state.salarioBruto || '';
   const cargaHoraria = state.salarioCarga || '160';
-  const inss = state.salarioInss || '11';
-  const irrf = state.salarioIrrf || '15';
+  const inss = state.salarioInss || '10.75';
+  const irrf = state.salarioIrrf || '7';
+  const contrAssistencial = state.salarioContrAssist || '0.31';
   const valeTransporte = state.salarioVt || '';
   const valeRefeicao = state.salarioVr || '';
   const outrosDescontos = state.salarioOutros || '';
@@ -725,10 +727,11 @@ function renderSalario() {
   const carga = parseInt(cargaHoraria) || 160;
   const inssCalc = bruto * (parseCurrency(inss) / 100);
   const irrfCalc = bruto * (parseCurrency(irrf) / 100);
+  const contrAssistCalc = bruto * (parseCurrency(contrAssistencial) / 100);
   const vtCalc = parseCurrency(valeTransporte);
   const vrCalc = parseCurrency(valeRefeicao);
   const outrosCalc = parseCurrency(outrosDescontos);
-  const totalDescontos = inssCalc + irrfCalc + vtCalc + vrCalc + outrosCalc;
+  const totalDescontos = inssCalc + irrfCalc + contrAssistCalc + vtCalc + vrCalc + outrosCalc;
   const salarioLiquido = bruto - totalDescontos;
   const valorPorHora = carga > 0 ? salarioLiquido / carga : 0;
   
@@ -767,11 +770,11 @@ function renderSalario() {
     
     ${tipoContrato === 'clt' ? `
       <div class="card">
-        <h3 style="font-weight: 500; margin-bottom: 16px;">Dados do contrato CLT</h3>
+        <h3 style="font-weight: 500; margin-bottom: 16px;">Dados do holerite CLT</h3>
         
         <div class="form-group">
           <label>Salário bruto mensal (R$)</label>
-          <input type="text" class="form-input" id="salario-bruto" value="${salarioBruto}" placeholder="Ex.: 5.000,00">
+          <input type="text" class="form-input" id="salario-bruto" value="${salarioBruto}" placeholder="Ex.: 6.115,20">
         </div>
         
         <div class="form-group">
@@ -779,25 +782,35 @@ function renderSalario() {
           <input type="number" class="form-input" id="salario-carga" value="${cargaHoraria}" placeholder="160">
         </div>
         
+        <h4 style="font-weight: 500; margin: 16px 0 12px; font-size: 0.9rem; color: var(--muted-foreground);">Descontos (%)</h4>
+        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div class="form-group">
-            <label>INSS (%)</label>
-            <input type="text" class="form-input" id="salario-inss" value="${inss}" placeholder="11">
+            <label>Cód. 503 - INSS (%)</label>
+            <input type="text" class="form-input" id="salario-inss" value="${inss}" placeholder="10,75">
           </div>
           <div class="form-group">
-            <label>IRRF (%)</label>
-            <input type="text" class="form-input" id="salario-irrf" value="${irrf}" placeholder="15">
+            <label>Cód. 504 - IRRF (%)</label>
+            <input type="text" class="form-input" id="salario-irrf" value="${irrf}" placeholder="7">
           </div>
         </div>
         
         <div class="form-group">
-          <label>Vale-transporte (R$)</label>
-          <input type="text" class="form-input" id="salario-vt" value="${valeTransporte}" placeholder="0,00">
+          <label>Cód. 531 - Contr. Assistencial (%)</label>
+          <input type="text" class="form-input" id="salario-contr-assist" value="${contrAssistencial}" placeholder="0,31">
         </div>
         
-        <div class="form-group">
-          <label>Vale-refeição (R$)</label>
-          <input type="text" class="form-input" id="salario-vr" value="${valeRefeicao}" placeholder="0,00">
+        <h4 style="font-weight: 500; margin: 16px 0 12px; font-size: 0.9rem; color: var(--muted-foreground);">Outros descontos (R$)</h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Cód. 542 - Vale-transporte</label>
+            <input type="text" class="form-input" id="salario-vt" value="${valeTransporte}" placeholder="0,00">
+          </div>
+          <div class="form-group">
+            <label>Cód. 700 - Refeição</label>
+            <input type="text" class="form-input" id="salario-vr" value="${valeRefeicao}" placeholder="0,00">
+          </div>
         </div>
         
         <div class="form-group">
@@ -815,35 +828,42 @@ function renderSalario() {
         <div class="card">
           <h2 style="font-weight: 500; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
             ${icons.calculator}
-            Resumo do salário
+            Resumo do holerite
           </h2>
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-              <span>Salário bruto</span>
+              <span>Cód. 001 - Salário normal</span>
               <span style="font-weight: 500;">${formatCurrency(bruto)}</span>
             </div>
             
             <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-              <span>INSS (${inss}%)</span>
+              <span>Cód. 503 - INSS (${inss}%)</span>
               <span>-${formatCurrency(inssCalc)}</span>
             </div>
             
             <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-              <span>IRRF (${irrf}%)</span>
+              <span>Cód. 504 - IRRF (${irrf}%)</span>
               <span>-${formatCurrency(irrfCalc)}</span>
             </div>
             
+            ${contrAssistCalc > 0 ? `
+              <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
+                <span>Cód. 531 - Contr. Assistencial (${contrAssistencial}%)</span>
+                <span>-${formatCurrency(contrAssistCalc)}</span>
+              </div>
+            ` : ''}
+            
             ${vtCalc > 0 ? `
               <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-                <span>Vale-transporte</span>
+                <span>Cód. 542 - Vale-transporte</span>
                 <span>-${formatCurrency(vtCalc)}</span>
               </div>
             ` : ''}
             
             ${vrCalc > 0 ? `
               <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-                <span>Vale-refeição</span>
+                <span>Cód. 700 - Refeição</span>
                 <span>-${formatCurrency(vrCalc)}</span>
               </div>
             ` : ''}
@@ -1388,6 +1408,15 @@ function bindEvents() {
   if (salarioIrrf) {
     salarioIrrf.addEventListener('input', () => {
       state.salarioIrrf = salarioIrrf.value;
+      state.salarioCalculado = false;
+    });
+  }
+
+  // Salary - Contr. Assistencial
+  const salarioContrAssist = document.getElementById('salario-contr-assist');
+  if (salarioContrAssist) {
+    salarioContrAssist.addEventListener('input', () => {
+      state.salarioContrAssist = salarioContrAssist.value;
       state.salarioCalculado = false;
     });
   }
