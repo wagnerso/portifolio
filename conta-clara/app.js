@@ -9,6 +9,7 @@ const state = {
     4: { concluida: false, itens: [false, false] },
     5: { concluida: false, itens: [false, false] }
   },
+  homeChecklist: JSON.parse(localStorage.getItem('conta-clara-homeChecklist') || 'null') || [false, false, false, false],
   gastos: JSON.parse(localStorage.getItem('conta-clara-gastos') || '[]'),
   metas: JSON.parse(localStorage.getItem('conta-clara-metas') || '[]'),
   expandedAula: null,
@@ -16,9 +17,8 @@ const state = {
   salarioTipo: 'clt',
   salarioBruto: '',
   salarioCarga: '160',
-  salarioInss: '10.75',
-  salarioIrrf: '7',
-  salarioContrAssist: '0.31',
+  salarioDependentes: '0',
+  salarioOutrasDeducoes: '',
   salarioVt: '',
   salarioVr: '',
   salarioOutros: '',
@@ -53,7 +53,7 @@ const aulas = [
   { id: 1, titulo: 'Psicologia Financeira', data: '19/08', status: 'acessivel', descricao: 'Nesta primeira aula, vamos entender como nossas crenças sobre dinheiro são formadas e como elas afetam nossas decisões diárias. O primeiro passo para assumir o controle é entender a própria mente e reprogramar a forma como enxergamos a nossa vida financeira.', checklist: ['Refletir sobre o maior gatilho de gastos', 'Abrir a Conta Cofre (banco digital/corretora)', 'Trazer todas as contas abertas que tem hoje para análise'], pdf: 'public/aulas/01-Psicologia-Financeira.pdf' },
   { id: 2, titulo: 'Rastreamento do Dinheiro', data: '02/09', status: 'atual', descricao: 'Agora que entendemos nossa mente, precisamos entender nossa realidade. Aprenda o método prático para saber exatamente para onde o seu dinheiro está indo, sem complicação e sem se sentir culpado por cada gasto.', checklist: ['Lançar os gastos dos primeiros 7 dias na planilha', 'Identificar e cortar 1 vazamento invisível (ex: assinatura)'], pdf: 'public/aulas/02-Rastreamento-do-Dinheiro.pdf' },
   { id: 3, titulo: 'Reserva e Metas', data: '09/09', status: 'acessivel', checklist: ['Preencher a planilha 70/30 com a renda atual', 'Definir e carimbar 3 metas no formato SMART'], pdf: 'public/aulas/03-Reserva-e-Metas.pdf' },
-  { id: 4, titulo: 'Financiamento Imobiliário', data: '09/09', status: 'bloqueada', checklist: ['Olhar o saldo devedor real no app do banco', 'Simular 1 amortização extra na calculadora'], pdf: null },
+  { id: 4, titulo: 'Financiamento Imobiliário', data: '09/09', status: 'acessivel', checklist: ['Olhar o saldo devedor real no app do banco', 'Simular 1 amortização extra na calculadora'], pdf: 'public/aulas/04-Financiamento-Imobiliario.pdf' },
   { id: 5, titulo: 'Investimentos', data: '16/09', status: 'bloqueada', checklist: ['Transferir o primeiro valor para a Conta Cofre', 'Fazer o primeiro investimento em Renda Fixa'], pdf: null }
 ];
 
@@ -145,6 +145,28 @@ function renderHome() {
       <p style="color: var(--muted-foreground); font-size: 0.875rem;">${aulasConcluidas} de 5 aulas concluídas</p>
       <div class="progress-bar">
         <div class="progress-fill" style="width: ${percentual}%"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="font-serif" style="margin-bottom: 12px;">Checklist da semana</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" data-checklist-home="0" ${state.homeChecklist[0] ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--moss);">
+          <span style="font-size: 0.9rem;">Categorizar gastos das últimas 2 semanas</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" data-checklist-home="1" ${state.homeChecklist[1] ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--moss);">
+          <span style="font-size: 0.9rem;">Fechar as contas dos bancos NuBank, PicPay, XP e Bradesco</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" data-checklist-home="2" ${state.homeChecklist[2] ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--moss);">
+          <span style="font-size: 0.9rem;">Emitir nota fiscal paulista</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" data-checklist-home="3" ${state.homeChecklist[3] ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--moss);">
+          <span style="font-size: 0.9rem;">Refazer a conta do custo 100</span>
+        </label>
       </div>
     </div>
 
@@ -714,9 +736,8 @@ function renderSalario() {
   const tipoContrato = state.salarioTipo || 'clt';
   const salarioBruto = state.salarioBruto || '';
   const cargaHoraria = state.salarioCarga || '160';
-  const inss = state.salarioInss || '10.75';
-  const irrf = state.salarioIrrf || '7';
-  const contrAssistencial = state.salarioContrAssist || '0.31';
+  const dependentes = parseInt(state.salarioDependentes) || 0;
+  const outrasDeducoes = state.salarioOutrasDeducoes || '';
   const valeTransporte = state.salarioVt || '';
   const valeRefeicao = state.salarioVr || '';
   const outrosDescontos = state.salarioOutros || '';
@@ -725,13 +746,81 @@ function renderSalario() {
   const parseCurrency = (v) => parseFloat((v || '0').replace(/\./g, '').replace(',', '.')) || 0;
   const bruto = parseCurrency(salarioBruto);
   const carga = parseInt(cargaHoraria) || 160;
-  const inssCalc = bruto * (parseCurrency(inss) / 100);
-  const irrfCalc = bruto * (parseCurrency(irrf) / 100);
-  const contrAssistCalc = bruto * (parseCurrency(contrAssistencial) / 100);
+  
+  // Cálculo INSS por faixas
+  function calcINSS(salario) {
+    let desconto = 0;
+    let faixa = '';
+    if (salario <= 1621.00) {
+      desconto = salario * 0.075;
+      faixa = '7,5%';
+    } else if (salario <= 2902.84) {
+      desconto = 1621.00 * 0.075 + (salario - 1621.00) * 0.09;
+      faixa = '9%';
+    } else if (salario <= 4354.27) {
+      desconto = 1621.00 * 0.075 + (2902.84 - 1621.00) * 0.09 + (salario - 2902.84) * 0.12;
+      faixa = '12%';
+    } else if (salario <= 8475.55) {
+      desconto = 1621.00 * 0.075 + (2902.84 - 1621.00) * 0.09 + (4354.27 - 2902.84) * 0.12 + (salario - 4354.27) * 0.14;
+      faixa = '14%';
+    } else {
+      desconto = 1621.00 * 0.075 + (2902.84 - 1621.00) * 0.09 + (4354.27 - 2902.84) * 0.12 + (8475.55 - 4354.27) * 0.14;
+      faixa = '14% (teto)';
+    }
+    return { desconto, faixa };
+  }
+  
+  // Cálculo IRRF por faixas (base = salário bruto - INSS)
+  function calcIRRF(baseCalculo) {
+    let desconto = 0;
+    let faixa = '';
+    let aliquota = '';
+    let parcela = 0;
+    if (baseCalculo <= 2428.80) {
+      desconto = 0;
+      faixa = 'Isento';
+      aliquota = '0%';
+      parcela = 0;
+    } else if (baseCalculo <= 2826.65) {
+      desconto = baseCalculo * 0.075 - 182.16;
+      faixa = '7,5%';
+      aliquota = '7,5%';
+      parcela = 182.16;
+    } else if (baseCalculo <= 3751.05) {
+      desconto = baseCalculo * 0.15 - 394.16;
+      faixa = '15%';
+      aliquota = '15%';
+      parcela = 394.16;
+    } else if (baseCalculo <= 4664.68) {
+      desconto = baseCalculo * 0.225 - 675.49;
+      faixa = '22,5%';
+      aliquota = '22,5%';
+      parcela = 675.49;
+    } else {
+      desconto = baseCalculo * 0.275 - 908.73;
+      faixa = '27,5%';
+      aliquota = '27,5%';
+      parcela = 908.73;
+    }
+    if (desconto < 0) desconto = 0;
+    return { desconto, faixa, aliquota, parcela };
+  }
+  
+  const inssResultado = calcINSS(bruto);
+  const inssCalc = inssResultado.desconto;
+  const inssFaixa = inssResultado.faixa;
+  
+  const baseIRRF = bruto - inssCalc - (dependentes * 189.59) - parseCurrency(outrasDeducoes);
+  const irrfResultado = calcIRRF(baseIRRF);
+  const irrfCalc = irrfResultado.desconto;
+  const irrfFaixa = irrfResultado.faixa;
+  const irrfAliquota = irrfResultado.aliquota;
+  const irrfParcela = irrfResultado.parcela;
+  
   const vtCalc = parseCurrency(valeTransporte);
   const vrCalc = parseCurrency(valeRefeicao);
   const outrosCalc = parseCurrency(outrosDescontos);
-  const totalDescontos = inssCalc + irrfCalc + contrAssistCalc + vtCalc + vrCalc + outrosCalc;
+  const totalDescontos = inssCalc + irrfCalc + vtCalc + vrCalc + outrosCalc;
   const salarioLiquido = bruto - totalDescontos;
   const valorPorHora = carga > 0 ? salarioLiquido / carga : 0;
   
@@ -782,33 +871,31 @@ function renderSalario() {
           <input type="number" class="form-input" id="salario-carga" value="${cargaHoraria}" placeholder="160">
         </div>
         
-        <h4 style="font-weight: 500; margin: 16px 0 12px; font-size: 0.9rem; color: var(--muted-foreground);">Descontos (%)</h4>
+        <h4 style="font-weight: 500; margin: 16px 0 12px; font-size: 0.9rem; color: var(--muted-foreground);">Deduções antes do IRRF</h4>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div class="form-group">
-            <label>Cód. 503 - INSS (%)</label>
-            <input type="text" class="form-input" id="salario-inss" value="${inss}" placeholder="10,75">
+            <label>Dependentes (unidades)</label>
+            <input type="number" class="form-input" id="salario-dependentes" value="${dependentes}" placeholder="0">
           </div>
           <div class="form-group">
-            <label>Cód. 504 - IRRF (%)</label>
-            <input type="text" class="form-input" id="salario-irrf" value="${irrf}" placeholder="7">
+            <label>Outras deduções (R$)</label>
+            <input type="text" class="form-input" id="salario-outras-deducoes" value="${outrasDeducoes}" placeholder="0,00">
           </div>
         </div>
-        
-        <div class="form-group">
-          <label>Cód. 531 - Contr. Assistencial (%)</label>
-          <input type="text" class="form-input" id="salario-contr-assist" value="${contrAssistencial}" placeholder="0,31">
-        </div>
+        <p style="font-size: 0.7rem; color: var(--muted-foreground); margin-top: -8px; margin-bottom: 8px;">
+          Inclui previdência complementar (PGBL/Fapi), pensão alimentícia, etc.
+        </p>
         
         <h4 style="font-weight: 500; margin: 16px 0 12px; font-size: 0.9rem; color: var(--muted-foreground);">Outros descontos (R$)</h4>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div class="form-group">
-            <label>Cód. 542 - Vale-transporte</label>
+            <label>Vale-transporte</label>
             <input type="text" class="form-input" id="salario-vt" value="${valeTransporte}" placeholder="0,00">
           </div>
           <div class="form-group">
-            <label>Cód. 700 - Refeição</label>
+            <label>Refeição</label>
             <input type="text" class="form-input" id="salario-vr" value="${valeRefeicao}" placeholder="0,00">
           </div>
         </div>
@@ -833,37 +920,44 @@ function renderSalario() {
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-              <span>Cód. 001 - Salário normal</span>
+              <span>Salário normal</span>
               <span style="font-weight: 500;">${formatCurrency(bruto)}</span>
             </div>
             
             <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-              <span>Cód. 503 - INSS (${inss}%)</span>
+              <span>INSS (${inssFaixa})</span>
               <span>-${formatCurrency(inssCalc)}</span>
             </div>
             
             <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-              <span>Cód. 504 - IRRF (${irrf}%)</span>
+              <span>IRRF (${irrfFaixa})</span>
               <span>-${formatCurrency(irrfCalc)}</span>
             </div>
             
-            ${contrAssistCalc > 0 ? `
-              <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-                <span>Cód. 531 - Contr. Assistencial (${contrAssistencial}%)</span>
-                <span>-${formatCurrency(contrAssistCalc)}</span>
+            ${dependentes > 0 ? `
+              <div style="display: flex; justify-content: space-between; color: var(--muted-foreground); font-size: 0.875rem;">
+                <span>Dependentes (${dependentes}× R$ 189,59)</span>
+                <span>-${formatCurrency(dependentes * 189.59)}</span>
+              </div>
+            ` : ''}
+            
+            ${parseCurrency(outrasDeducoes) > 0 ? `
+              <div style="display: flex; justify-content: space-between; color: var(--muted-foreground); font-size: 0.875rem;">
+                <span>Outras deduções (IRRF)</span>
+                <span>-${formatCurrency(parseCurrency(outrasDeducoes))}</span>
               </div>
             ` : ''}
             
             ${vtCalc > 0 ? `
               <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-                <span>Cód. 542 - Vale-transporte</span>
+                <span>Vale-transporte</span>
                 <span>-${formatCurrency(vtCalc)}</span>
               </div>
             ` : ''}
             
             ${vrCalc > 0 ? `
               <div style="display: flex; justify-content: space-between; color: var(--destructive); font-size: 0.875rem;">
-                <span>Cód. 700 - Refeição</span>
+                <span>Refeição</span>
                 <span>-${formatCurrency(vrCalc)}</span>
               </div>
             ` : ''}
@@ -884,6 +978,61 @@ function renderSalario() {
               <span style="font-weight: 600;">Salário líquido</span>
               <span style="font-weight: 600; color: var(--moss);">${formatCurrency(salarioLiquido)}</span>
             </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h2 style="font-weight: 500; margin-bottom: 16px;">Detalhamento dos descontos</h2>
+          
+          <div style="margin-bottom: 16px;">
+            <h4 style="font-weight: 500; margin-bottom: 8px; font-size: 0.9rem;">INSS — Faixas de contribuição</h4>
+            <div style="font-size: 0.8rem; color: var(--muted-foreground); display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Até R$ 1.621,00 → 7,5%</span>
+                <span>${bruto <= 1621.00 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>R$ 1.621,01 a R$ 2.902,84 → 9%</span>
+                <span>${bruto > 1621.00 && bruto <= 2902.84 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>R$ 2.902,85 a R$ 4.354,27 → 12%</span>
+                <span>${bruto > 2902.84 && bruto <= 4354.27 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>R$ 4.354,28 a R$ 8.475,55 → 14%</span>
+                <span>${bruto > 4354.27 && bruto <= 8475.55 ? '← Você' : ''}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 style="font-weight: 500; margin-bottom: 8px; font-size: 0.9rem;">IRRF — Faixas de imposto</h4>
+            <div style="font-size: 0.8rem; color: var(--muted-foreground); display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Até R$ 2.428,80 → Isento</span>
+                <span>${baseIRRF <= 2428.80 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>R$ 2.428,81 a R$ 2.826,65 → 7,5%</span>
+                <span>${baseIRRF > 2428.80 && baseIRRF <= 2826.65 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>R$ 2.826,66 a R$ 3.751,05 → 15%</span>
+                <span>${baseIRRF > 2826.65 && baseIRRF <= 3751.05 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>R$ 3.751,06 a R$ 4.664,68 → 22,5%</span>
+                <span>${baseIRRF > 3751.05 && baseIRRF <= 4664.68 ? '← Você' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Acima de R$ 4.664,68 → 27,5%</span>
+                <span>${baseIRRF > 4664.68 ? '← Você' : ''}</span>
+              </div>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--muted-foreground); margin-top: 8px;">
+              Base de cálculo: Salário bruto − INSS${dependentes > 0 ? ` − ${dependentes} dependente${dependentes > 1 ? 's' : ''}` : ''}${parseCurrency(outrasDeducoes) > 0 ? ` − outras deduções` : ''} = ${formatCurrency(baseIRRF)}
+            </p>
           </div>
         </div>
         
@@ -1221,6 +1370,16 @@ function bindEvents() {
     });
   });
 
+  // Home checklist
+  document.querySelectorAll('[data-checklist-home]').forEach(input => {
+    input.addEventListener('change', () => {
+      const idx = parseInt(input.dataset.checklistHome);
+      state.homeChecklist[idx] = input.checked;
+      save('homeChecklist', state.homeChecklist);
+      render();
+    });
+  });
+
   // Concluir aula
   document.querySelectorAll('[data-concluir]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1394,29 +1553,20 @@ function bindEvents() {
     });
   }
 
-  // Salary - INSS
-  const salarioInss = document.getElementById('salario-inss');
-  if (salarioInss) {
-    salarioInss.addEventListener('input', () => {
-      state.salarioInss = salarioInss.value;
+  // Salary - Dependentes
+  const salarioDependentes = document.getElementById('salario-dependentes');
+  if (salarioDependentes) {
+    salarioDependentes.addEventListener('input', () => {
+      state.salarioDependentes = salarioDependentes.value;
       state.salarioCalculado = false;
     });
   }
 
-  // Salary - IRRF
-  const salarioIrrf = document.getElementById('salario-irrf');
-  if (salarioIrrf) {
-    salarioIrrf.addEventListener('input', () => {
-      state.salarioIrrf = salarioIrrf.value;
-      state.salarioCalculado = false;
-    });
-  }
-
-  // Salary - Contr. Assistencial
-  const salarioContrAssist = document.getElementById('salario-contr-assist');
-  if (salarioContrAssist) {
-    salarioContrAssist.addEventListener('input', () => {
-      state.salarioContrAssist = salarioContrAssist.value;
+  // Salary - Outras deduções IRRF
+  const salarioOutrasDeducoes = document.getElementById('salario-outras-deducoes');
+  if (salarioOutrasDeducoes) {
+    salarioOutrasDeducoes.addEventListener('input', () => {
+      state.salarioOutrasDeducoes = salarioOutrasDeducoes.value;
       state.salarioCalculado = false;
     });
   }
