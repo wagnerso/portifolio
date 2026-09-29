@@ -1,0 +1,17 @@
+{
+  "name": "Wagner Santos de Oliveira — Portfólio",
+  "short_name": "Portfólio",
+  "description": "Portfólio de Wagner Santos de Oliveira — Gerente de projetos, desenvolvedor e criador do Conta Clara, Kognis e Aduan.IA.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F2EC",
+  "theme_color": "#F5F2EC",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📁</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

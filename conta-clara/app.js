@@ -29,7 +29,10 @@ const state = {
   metaForm: { specific: '', measurable: '', achievable: '', relevant: '', timebound: '' },
   showAposentadoriaForm: false,
   aposentadoriaForm: { idadeAtual: '', idadeAposentadoria: '', rendaMensal: '', reservaAtual: '', taxaAnual: '6' },
-  aposentadoriaResult: null
+  aposentadoriaResult: null,
+  showAmortizacaoForm: false,
+  amortizacaoForm: { valor: '', taxaAnual: '', prazo: '' },
+  amortizacaoResult: null
 };
 
 // Save to localStorage
@@ -62,7 +65,7 @@ const materiais = [
   { id: 'gastos', titulo: 'Meus gastos', icone: 'receipt', acessivel: true },
   { id: 'metas', titulo: 'Minhas metas', icone: 'target', acessivel: true },
   { id: 'aposentadoria', titulo: 'Simulador de Aposentadoria', icone: 'trending-down', acessivel: true },
-  { id: 'amortizacao', titulo: 'Amortização financeira', icone: 'trending-down', acessivel: false }
+  { id: 'amortizacao', titulo: 'Amortização financeira', icone: 'trending-down', acessivel: true }
 ];
 
 const glossario = [
@@ -118,7 +121,7 @@ function render() {
   } else if (state.currentPage === 'aposentadoria') {
     app.innerHTML = renderAposentadoriaPage();
   } else if (state.currentPage === 'amortizacao') {
-    app.innerHTML = renderBloqueado('Amortização financeira');
+    app.innerHTML = renderAmortizacaoPage();
   } else if (state.currentPage === 'glossario') {
     app.innerHTML = renderGlossarioPage();
   }
@@ -1282,6 +1285,67 @@ function renderAposentadoriaPage() {
   `;
 }
 
+function renderAmortizacao() {
+  const valor = parseCurrency(state.amortizacaoForm.valor) || 0;
+  const taxaAnual = parseFloat(state.amortizacaoForm.taxaAnual) || 0;
+  const prazo = parseInt(state.amortizacaoForm.prazo) || 0;
+  const taxaMensal = taxaAnual / 100 / 12;
+  const n = prazo;
+
+  let resultadoHtml = '';
+  let tabelaHtml = '';
+
+  if (valor > 0 && taxaAnual > 0 && n > 0) {
+    const pmt = valor * taxaMensal / (1 - Math.pow(1 + taxaMensal, -n));
+    const totalPago = pmt * n;
+    const totalJuros = totalPago - valor;
+
+    resultadoHtml = '<div class="card" style="margin-bottom: 24px;"><h3 class="font-serif" style="margin-bottom: 16px;">Resultado</h3><div style="display: flex; flex-direction: column; gap: 12px;">';
+    resultadoHtml += '<div style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border);"><span>Prestação mensal</span><span style="font-weight: 600; color: var(--moss);">' + formatCurrency(pmt) + '</span></div>';
+    resultadoHtml += '<div style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border);"><span>Total de juros</span><span style="font-weight: 600;">' + formatCurrency(totalJuros) + '</span></div>';
+    resultadoHtml += '<div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Total pago</span><span style="color: var(--moss);">' + formatCurrency(totalPago) + '</span></div>';
+    resultadoHtml += '</div></div>';
+
+    tabelaHtml = '<div class="card" style="margin-bottom: 24px;"><h3 class="font-serif" style="margin-bottom: 16px;">Planilha de Amortização</h3><div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;"><thead><tr style="border-bottom: 2px solid var(--border);"><th style="text-align: left; padding: 8px;">Parcela</th><th style="text-align: right; padding: 8px;">Juros</th><th style="text-align: right; padding: 8px;">Amort.</th><th style="text-align: right; padding: 8px;">Saldo</th></tr></thead><tbody>';
+
+    let saldo = valor;
+    for (let i = 1; i <= n; i++) {
+      const juros = saldo * taxaMensal;
+      const amort = pmt - juros;
+      saldo = Math.max(0, saldo - amort);
+      tabelaHtml += '<tr style="border-bottom: 1px solid var(--line);"><td style="padding: 6px 8px;">' + i + '</td><td style="text-align: right; padding: 6px 8px;">' + formatCurrency(juros) + '</td><td style="text-align: right; padding: 6px 8px;">' + formatCurrency(amort) + '</td><td style="text-align: right; padding: 6px 8px;">' + formatCurrency(saldo) + '</td></tr>';
+    }
+
+    tabelaHtml += '</tbody></table></div></div>';
+  }
+
+  const formSection = state.showAmortizacaoForm ? (
+    '<div class="card" style="margin-bottom: 24px;"><h3 class="font-serif" style="margin-bottom: 16px;">Simulador de Amortização</h3>' +
+    '<div class="form-group"><label>Valor do empréstimo (R$)</label><input type="text" class="form-input" id="amor-valor" value="' + state.amortizacaoForm.valor + '" placeholder="Ex.: 100.000,00"></div>' +
+    '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">' +
+    '<div class="form-group"><label>Taxa de juros anual (%)</label><input type="text" class="form-input" id="amor-taxa" value="' + state.amortizacaoForm.taxaAnual + '" placeholder="Ex.: 12"></div>' +
+    '<div class="form-group"><label>Prazo (meses)</label><input type="number" class="form-input" id="amor-prazo" value="' + state.amortizacaoForm.prazo + '" placeholder="Ex.: 120"></div>' +
+    '</div>' +
+    '<button class="btn-primary" style="width: 100%; margin-top: 8px;" id="calcular-amortizacao">' + icons.calculator + ' Calcular</button>' +
+    '</div>'
+  ) : '';
+
+  const buttonSection = state.showAmortizacaoForm
+    ? '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;"><button class="btn btn-secondary" id="limpar-amortizacao">Limpar</button><button class="btn btn-primary" id="iniciar-amortizacao" style="background: var(--moss);">Calcular</button></div>'
+    : '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;"><button class="btn btn-primary" id="iniciar-amortizacao" style="background: var(--moss);">Iniciar Simulação</button></div>';
+
+  return '<button class="page-header" data-back>' + icons.arrowLeft + ' Voltar</button>' +
+    '<h1 class="page-title font-serif">Amortização Financeira</h1>' +
+    '<p class="page-subtitle">Simule o pagamento de um empréstimo ou financiamento com parcelas mensais.</p>' +
+    resultadoHtml + formSection + tabelaHtml + buttonSection;
+}
+
+function renderAmortizacaoPage() {
+  return '<button class="page-header" data-back>' + icons.arrowLeft + ' Voltar</button>' +
+    '<h1 class="page-title font-serif">Amortização Financeira</h1>' +
+    renderAmortizacao();
+}
+
 function renderBloqueado(titulo) {
   return `
     <button class="page-header" data-back>
@@ -1752,6 +1816,63 @@ function bindEvents() {
         reservaAtual
       };
 
+      render();
+    });
+  }
+
+  // Amortização Financeira
+  const amorValorInput = document.getElementById('amor-valor');
+  if (amorValorInput) {
+    amorValorInput.addEventListener('input', () => {
+      state.amortizacaoForm.valor = amorValorInput.value;
+      state.amortizacaoResult = null;
+    });
+  }
+
+  const amorTaxaInput = document.getElementById('amor-taxa');
+  if (amorTaxaInput) {
+    amorTaxaInput.addEventListener('input', () => {
+      state.amortizacaoForm.taxaAnual = amorTaxaInput.value;
+      state.amortizacaoResult = null;
+    });
+  }
+
+  const amorPrazoInput = document.getElementById('amor-prazo');
+  if (amorPrazoInput) {
+    amorPrazoInput.addEventListener('input', () => {
+      state.amortizacaoForm.prazo = amorPrazoInput.value;
+      state.amortizacaoResult = null;
+    });
+  }
+
+  const calcularAmortizacaoBtn = document.getElementById('calcular-amortizacao');
+  if (calcularAmortizacaoBtn) {
+    calcularAmortizacaoBtn.addEventListener('click', () => {
+      const valor = parseCurrency(state.amortizacaoForm.valor);
+      const taxaAnual = parseFloat(state.amortizacaoForm.taxaAnual);
+      const prazo = parseInt(state.amortizacaoForm.prazo);
+      if (valor > 0 && taxaAnual > 0 && prazo > 0) {
+        state.showAmortizacaoForm = true;
+        state.amortizacaoResult = { valor, taxaAnual, prazo };
+        render();
+      }
+    });
+  }
+
+  const iniciarAmortizacaoBtn = document.getElementById('iniciar-amortizacao');
+  if (iniciarAmortizacaoBtn) {
+    iniciarAmortizacaoBtn.addEventListener('click', () => {
+      state.showAmortizacaoForm = true;
+      render();
+    });
+  }
+
+  const limparAmortizacaoBtn = document.getElementById('limpar-amortizacao');
+  if (limparAmortizacaoBtn) {
+    limparAmortizacaoBtn.addEventListener('click', () => {
+      state.amortizacaoForm = { valor: '', taxaAnual: '', prazo: '' };
+      state.showAmortizacaoForm = false;
+      state.amortizacaoResult = null;
       render();
     });
   }
