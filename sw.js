@@ -9,7 +9,9 @@ const STATIC_ASSETS = [
   '/conta-clara/app.js',
   '/kognis/index.html',
   '/kognis/common.css',
-  '/kognis/common.js',
+  '/kognis/data.js",
+  "/kognis/logic.js",
+  "/kognis/ui.js',
   '/kognis/srs2.html',
   '/kognis/bdefs.html',
   '/kognis/bsi.html'
