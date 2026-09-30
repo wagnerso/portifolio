@@ -57,7 +57,7 @@ const aulas = [
   { id: 2, titulo: 'Rastreamento do Dinheiro', data: '02/09', status: 'acessivel', descricao: 'Agora que entendemos nossa mente, precisamos entender nossa realidade. Aprenda o método prático para saber exatamente para onde o seu dinheiro está indo, sem complicação e sem se sentir culpado por cada gasto.', checklist: ['Lançar os gastos dos primeiros 7 dias na planilha', 'Identificar e cortar 1 vazamento invisível (ex: assinatura)'], pdf: 'public/aulas/02-Rastreamento-do-Dinheiro.pdf' },
   { id: 3, titulo: 'Reserva e Metas', data: '09/09', status: 'acessivel', checklist: ['Preencher a planilha 70/30 com a renda atual', 'Definir e carimbar 3 metas no formato SMART'], pdf: 'public/aulas/03-Reserva-e-Metas.pdf' },
   { id: 4, titulo: 'Financiamento Imobiliário', data: '09/09', status: 'acessivel', checklist: ['Olhar o saldo devedor real no app do banco', 'Simular 1 amortização extra na calculadora'], pdf: 'public/aulas/04-Financiamento-Imobiliario.pdf' },
-  { id: 5, titulo: 'Investimentos', data: '16/09', status: 'bloqueada', checklist: ['Transferir o primeiro valor para a Conta Cofre', 'Fazer o primeiro investimento em Renda Fixa'], pdf: null }
+  { id: 5, titulo: 'Investimentos', data: '16/09', status: 'acessivel', checklist: ['Transferir o primeiro valor para a Conta Cofre', 'Fazer o primeiro investimento em Renda Fixa'], pdf: null }
 ];
 
 const materiais = [
