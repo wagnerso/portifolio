@@ -7,7 +7,8 @@ const state = {
     2: { concluida: false, itens: [false, false] },
     3: { concluida: false, itens: [false, false] },
     4: { concluida: false, itens: [false, false] },
-    5: { concluida: false, itens: [false, false] }
+    5: { concluida: false, itens: [false, false] },
+    6: { concluida: false, itens: [false, false] }
   },
   homeChecklist: JSON.parse(localStorage.getItem('conta-clara-homeChecklist') || 'null') || [false, false, false, false],
   gastos: JSON.parse(localStorage.getItem('conta-clara-gastos') || '[]'),
@@ -32,7 +33,18 @@ const state = {
   aposentadoriaResult: null,
   showAmortizacaoForm: false,
   amortizacaoForm: { valor: '', taxaAnual: '', prazo: '' },
-  amortizacaoResult: null
+  amortizacaoResult: null,
+  quitarForm: { saldo: '224.564,49', taxaAnual: '7,66', parcela: '1.547,55', restantes: '411' },
+  quitarValor: '',
+  quitarResult: null,
+  jurosForm: { inicial: '', aporte: '', taxa: '10', anos: '' },
+  jurosResult: null,
+  comparaForm: { valor: '', anos: '', cdb: '10', tesouro: '10', lci: '9' },
+  comparaResult: null,
+  reservaForm: { gastos: '', reservaAtual: '', aporte: '' },
+  reservaResult: null,
+  fgtsForm: { saldo: '', deposito: '', taxa: '4', anos: '' },
+  fgtsResult: null
 };
 
 // Save to localStorage
@@ -51,13 +63,44 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('pt-BR');
 }
 
+// Parse Brazilian currency/number ("1.547,55" -> 1547.55)
+function parseCurrency(v) {
+  return parseFloat((v || '0').replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+// Parse percentage with comma decimal ("7,66" -> 7.66)
+function parseTaxa(v) {
+  return parseFloat((v || '0').replace(',', '.')) || 0;
+}
+
+// Human readable term ("70" -> "5 anos e 10 meses")
+function formatPrazo(meses) {
+  if (!isFinite(meses)) return '—';
+  const m = Math.max(0, Math.round(meses));
+  const anos = Math.floor(m / 12);
+  const rest = m % 12;
+  if (anos === 0) return rest + (rest === 1 ? ' mês' : ' meses');
+  return anos + (anos === 1 ? ' ano' : ' anos') + (rest > 0 ? ' e ' + rest + (rest === 1 ? ' mês' : ' meses') : '');
+}
+
+function resultRow(label, value, highlight) {
+  return '<div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);"><span>' + label + '</span><span style="font-weight: 600;' + (highlight ? ' color: var(--moss);' : '') + '">' + value + '</span></div>';
+}
+
+function toolPage(title, subtitle, content) {
+  return '<button class="page-header" data-back>' + icons.arrowLeft + ' Voltar</button>' +
+    '<h1 class="page-title font-serif">' + title + '</h1>' +
+    '<p class="page-subtitle">' + subtitle + '</p>' + content;
+}
+
 // Data
 const aulas = [
   { id: 1, titulo: 'Psicologia Financeira', data: '19/08', status: 'acessivel', descricao: 'Nesta primeira aula, vamos entender como nossas crenças sobre dinheiro são formadas e como elas afetam nossas decisões diárias. O primeiro passo para assumir o controle é entender a própria mente e reprogramar a forma como enxergamos a nossa vida financeira.', checklist: ['Refletir sobre o maior gatilho de gastos', 'Abrir a Conta Cofre (banco digital/corretora)', 'Trazer todas as contas abertas que tem hoje para análise'], pdf: 'public/aulas/01-Psicologia-Financeira.pdf' },
   { id: 2, titulo: 'Rastreamento do Dinheiro', data: '26/08', status: 'acessivel', descricao: 'Agora que entendemos nossa mente, precisamos entender nossa realidade. Aprenda o método prático para saber exatamente para onde o seu dinheiro está indo, sem complicação e sem se sentir culpado por cada gasto.', checklist: ['Lançar os gastos dos primeiros 7 dias na planilha', 'Identificar e cortar 1 vazamento invisível (ex: assinatura)'], pdf: 'public/aulas/02-Rastreamento-do-Dinheiro.pdf' },
   { id: 3, titulo: 'Reserva e Metas', data: '23/09', status: 'acessivel', checklist: ['Preencher a planilha 70/30 com a renda atual', 'Definir e carimbar 3 metas no formato SMART'], pdf: 'public/aulas/03-Reserva-e-Metas.pdf' },
   { id: 4, titulo: 'Financiamento Imobiliário', data: '07/10', status: 'acessivel', checklist: ['Olhar o saldo devedor real no app do banco', 'Simular 1 amortização extra na calculadora'], pdf: 'public/aulas/04-Financiamento-Imobiliario.pdf' },
-  { id: 5, titulo: 'Investimentos', data: '14/10', status: 'acessivel', checklist: ['Transferir o primeiro valor para a Conta Cofre', 'Fazer o primeiro investimento em Renda Fixa'], pdf: null }
+  { id: 5, titulo: 'Investimentos', data: '14/10', status: 'acessivel', checklist: ['Transferir o primeiro valor para a Conta Cofre', 'Fazer o primeiro investimento em Renda Fixa'], pdf: 'public/aulas/05-Investimentos.pdf' },
+  { id: 6, titulo: 'Tabela Price', data: '21/10', status: 'acessivel', descricao: 'Entenda como funciona a Tabela Price do seu financiamento: por que no início quase toda a parcela é juros e como a amortização cresce mês a mês. Aprenda a simular o impacto de pagar um valor extra para encurtar o prazo.', checklist: ['Ver no app do banco a composição atual da parcela (juros x amortização)', 'Simular uma amortização extra na calculadora de quitação'], pdf: 'public/aulas/06-Tabela-Price.pdf' }
 ];
 
 const materiais = [
@@ -65,7 +108,12 @@ const materiais = [
   { id: 'gastos', titulo: 'Meus gastos', icone: 'receipt', acessivel: true },
   { id: 'metas', titulo: 'Minhas metas', icone: 'target', acessivel: true },
   { id: 'aposentadoria', titulo: 'Simulador de Aposentadoria', icone: 'trending-down', acessivel: true },
-  { id: 'amortizacao', titulo: 'Amortização financeira', icone: 'trending-down', acessivel: true }
+  { id: 'amortizacao', titulo: 'Amortização financeira', icone: 'trending-down', acessivel: true },
+  { id: 'quitar', titulo: 'Quitar / reduzir meu financiamento', icone: 'scissors', acessivel: true },
+  { id: 'juroscompostos', titulo: 'Juros compostos', icone: 'percent', acessivel: true },
+  { id: 'comparador', titulo: 'Comparador de investimentos', icone: 'layers', acessivel: true },
+  { id: 'reserva', titulo: 'Reserva de emergência', icone: 'shield', acessivel: true },
+  { id: 'fgts', titulo: 'Calculadora FGTS', icone: 'home', acessivel: true }
 ];
 
 const glossario = [
@@ -101,7 +149,12 @@ const icons = {
   trendingDown: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>',
   arrowRight: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
   download: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
-  externalLink: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>'
+  externalLink: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>',
+  percent: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
+  layers: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>',
+  shield: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>',
+  home: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  scissors: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>'
 };
 
 // Render
@@ -122,6 +175,16 @@ function render() {
     app.innerHTML = renderAposentadoriaPage();
   } else if (state.currentPage === 'amortizacao') {
     app.innerHTML = renderAmortizacaoPage();
+  } else if (state.currentPage === 'quitar') {
+    app.innerHTML = renderQuitarPage();
+  } else if (state.currentPage === 'juroscompostos') {
+    app.innerHTML = renderJurosPage();
+  } else if (state.currentPage === 'comparador') {
+    app.innerHTML = renderComparaPage();
+  } else if (state.currentPage === 'reserva') {
+    app.innerHTML = renderReservaPage();
+  } else if (state.currentPage === 'fgts') {
+    app.innerHTML = renderFgtsPage();
   } else if (state.currentPage === 'glossario') {
     app.innerHTML = renderGlossarioPage();
   }
@@ -131,7 +194,7 @@ function render() {
 
 function renderHome() {
   const aulasConcluidas = Object.values(state.checklist).filter(s => s.concluida).length;
-  const percentual = Math.round((aulasConcluidas / 5) * 100);
+  const percentual = Math.round((aulasConcluidas / aulas.length) * 100);
   
   return `
     <header class="header">
@@ -145,7 +208,7 @@ function renderHome() {
         <h2 class="font-serif">Seu progresso</h2>
         <span style="color: var(--muted-foreground); font-size: 0.875rem;">${percentual}%</span>
       </div>
-      <p style="color: var(--muted-foreground); font-size: 0.875rem;">${aulasConcluidas} de 5 aulas concluídas</p>
+      <p style="color: var(--muted-foreground); font-size: 0.875rem;">${aulasConcluidas} de ${aulas.length} aulas concluídas</p>
       <div class="progress-bar">
         <div class="progress-fill" style="width: ${percentual}%"></div>
       </div>
@@ -334,7 +397,12 @@ function renderMateriais() {
     'receipt': icons.receipt,
     'calculator': icons.calculator,
     'target': icons.target,
-    'trending-down': icons.trendingDown
+    'trending-down': icons.trendingDown,
+    'percent': icons.percent,
+    'layers': icons.layers,
+    'shield': icons.shield,
+    'home': icons.home,
+    'scissors': icons.scissors
   };
   
   return `
@@ -746,7 +814,6 @@ function renderSalario() {
   const outrosDescontos = state.salarioOutros || '';
   const produtoValor = state.produtoValor || '';
   
-  const parseCurrency = (v) => parseFloat((v || '0').replace(/\./g, '').replace(',', '.')) || 0;
   const bruto = parseCurrency(salarioBruto);
   const carga = parseInt(cargaHoraria) || 160;
   
@@ -1346,6 +1413,207 @@ function renderAmortizacaoPage() {
     renderAmortizacao();
 }
 
+// ---- Ferramenta: Quitar / reduzir financiamento (Tabela Price) ----
+// Logica: usuario informa um valor extra; simulamos o saldo devedor
+// recalculando o nº de parcelas restantes com a mesma parcela (Price).
+function simularQuitar(saldo, taxaAnual, parcela, restantes, valorExtra) {
+  const i = taxaAnual / 100 / 12;
+  if (saldo <= 0 || parcela <= 0 || i <= 0) return null;
+  // se o valor excede o saldo, quita pelo saldo (excedente nao entra)
+  if (valorExtra > saldo) valorExtra = saldo;
+  // parcelas que restariam sem amortizar (referencia)
+  const nSem = restantes > 0 ? restantes : Math.ceil(-Math.log(1 - saldo * i / parcela) / Math.log(1 + i));
+  const novoSaldo = Math.max(0, saldo - valorExtra);
+  let nCom;
+  if (novoSaldo <= 0) {
+    nCom = 0;
+  } else if (novoSaldo * i >= parcela) {
+    nCom = Infinity; // parcela nao cobre mais os juros: nunca quita
+  } else {
+    nCom = -Math.log(1 - novoSaldo * i / parcela) / Math.log(1 + i);
+  }
+  const eliminadas = isFinite(nCom) ? Math.max(0, Math.round(nSem - nCom)) : 0;
+  const totalSem = nSem * parcela;
+  const totalCom = valorExtra + (isFinite(nCom) ? nCom * parcela : 0);
+  const economia = totalSem - totalCom;
+  const jurosSem = totalSem - saldo;
+  return {
+    novoSaldo, nSem, nCom, eliminadas, totalSem, totalCom, economia, jurosSem,
+    quitou: novoSaldo <= 0,
+    nuncaQuita: !isFinite(nCom) && novoSaldo > 0
+  };
+}
+
+function renderQuitarPage() {
+  const f = state.quitarForm;
+  let html = '';
+
+  html += '<div class="card" style="margin-bottom: 24px;">';
+  html += '<h3 class="font-serif" style="margin-bottom: 12px;">Seu financiamento</h3>';
+  html += '<p style="color: var(--muted-foreground); font-size: 0.8rem; margin-bottom: 16px;">Pré-preenchido com os dados atuais do contrato. Ajuste se o banco atualizar.</p>';
+  html += '<div class="form-group"><label>Saldo devedor atual (R$)</label><input type="text" class="form-input" id="qt-saldo" value="' + f.saldo + '" placeholder="Ex.: 224.564,49"></div>';
+  html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
+  html += '<div class="form-group"><label>Juros nominais ao ano (%)</label><input type="text" class="form-input" id="qt-taxa" value="' + f.taxaAnual + '" placeholder="Ex.: 7,66"></div>';
+  html += '<div class="form-group"><label>Parcela mensal (R$)</label><input type="text" class="form-input" id="qt-parcela" value="' + f.parcela + '" placeholder="Ex.: 1.547,55"></div>';
+  html += '</div>';
+  html += '<div class="form-group"><label>Parcelas restantes</label><input type="text" class="form-input" id="qt-restantes" value="' + f.restantes + '" placeholder="Ex.: 411"></div>';
+  html += '<div class="form-group"><label style="color: var(--moss);">Valor a amortizar agora (R$)</label><input type="text" class="form-input" id="qt-valor" value="' + state.quitarValor + '" placeholder="Ex.: 10.000,00"></div>';
+  html += '<button class="btn-primary" style="width: 100%; justify-content: center;" id="qt-calcular">' + icons.calculator + ' Simular amortização</button>';
+  html += '</div>';
+
+  const r = state.quitarResult;
+  if (r) {
+    html += '<div class="card" style="margin-bottom: 24px;">';
+    html += '<h3 class="font-serif" style="margin-bottom: 16px;">Resultado</h3>';
+    if (r.nuncaQuita) {
+      html += '<p style="color: var(--destructive);">Com esse valor, a parcela não cobre mais os juros do saldo restante. Amortize um valor maior.</p>';
+    } else if (r.quitou) {
+      html += '<div style="text-align: center; padding: 8px 0;">';
+      html += '<div style="font-size: 1.5rem; font-weight: 600; color: var(--moss);">Financiamento quitado!</div>';
+      html += '<p style="color: var(--muted-foreground); font-size: 0.875rem; margin-top: 4px;">O valor informado cobre todo o saldo devedor.</p>';
+      html += '</div>';
+      html += resultRow('Economia de juros', formatCurrency(r.economia), true);
+    } else {
+      html += '<div style="text-align: center; padding: 8px 0 16px;">';
+      html += '<div style="font-size: 2.5rem; font-weight: 600; color: var(--moss);">' + r.eliminadas + '</div>';
+      html += '<div style="color: var(--muted-foreground); font-size: 0.875rem;">parcelas finais eliminadas</div>';
+      html += '</div>';
+      html += resultRow('Novo saldo devedor', formatCurrency(r.novoSaldo));
+      html += resultRow('Parcelas restantes', Math.round(r.nCom) + ' (antes: ' + r.nSem + ')');
+      html += resultRow('Prazo eliminado', formatPrazo(r.eliminadas));
+      html += resultRow('Total que pagaria sem amortizar', formatCurrency(r.totalSem));
+      html += resultRow('Total com amortização', formatCurrency(r.totalCom));
+      html += resultRow('Economia total', formatCurrency(r.economia), true);
+      html += '<p style="color: var(--muted-foreground); font-size: 0.8rem; margin-top: 12px;">Simulação com parcela mantida (Tabela Price). O banco mantém a parcela e reduz o prazo. Confirme a regra com a sua instituição.</p>';
+    }
+    html += '</div>';
+  }
+
+  return toolPage('Quitar / reduzir financiamento', 'Informe um valor e veja quantas parcelas finais ele elimina.', html);
+}
+
+// ---- Ferramenta: Juros compostos ----
+function renderJurosPage() {
+  const f = state.jurosForm;
+  let html = '';
+
+  html += '<div class="card" style="margin-bottom: 24px;">';
+  html += '<h3 class="font-serif" style="margin-bottom: 16px;">Simulação de juros compostos</h3>';
+  html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
+  html += '<div class="form-group"><label>Valor inicial (R$)</label><input type="text" class="form-input" id="jc-inicial" value="' + f.inicial + '" placeholder="Ex.: 1.000,00"></div>';
+  html += '<div class="form-group"><label>Aporte mensal (R$)</label><input type="text" class="form-input" id="jc-aporte" value="' + f.aporte + '" placeholder="Ex.: 300,00"></div>';
+  html += '<div class="form-group"><label>Taxa ao ano (%)</label><input type="text" class="form-input" id="jc-taxa" value="' + f.taxa + '" placeholder="Ex.: 10"></div>';
+  html += '<div class="form-group"><label>Prazo (anos)</label><input type="text" class="form-input" id="jc-anos" value="' + f.anos + '" placeholder="Ex.: 10"></div>';
+  html += '</div>';
+  html += '<button class="btn-primary" style="width: 100%; justify-content: center;" id="jc-calcular">' + icons.calculator + ' Calcular</button>';
+  html += '</div>';
+
+  const r = state.jurosResult;
+  if (r) {
+    html += '<div class="card" style="margin-bottom: 24px;">';
+    html += '<h3 class="font-serif" style="margin-bottom: 16px;">Resultado</h3>';
+    html += resultRow('Montante final', formatCurrency(r.montante), true);
+    html += resultRow('Total investido', formatCurrency(r.investido));
+    html += resultRow('Juros ganhos', formatCurrency(r.juros));
+    html += resultRow('Juros compostos (dobraram)', r.meses ? formatPrazo(r.meses) : '—');
+    html += '</div>';
+  }
+
+  return toolPage('Juros Compostos', 'Veja como o dinheiro cresce quando os juros também rendem juros.', html);
+}
+
+// ---- Ferramenta: Comparador de investimentos (CDB vs Tesouro vs LCI) ----
+function renderComparaPage() {
+  const f = state.comparaForm;
+  let html = '';
+
+  html += '<div class="card" style="margin-bottom: 24px;">';
+  html += '<h3 class="font-serif" style="margin-bottom: 12px;">Comparador de investimentos</h3>';
+  html += '<p style="color: var(--muted-foreground); font-size: 0.8rem; margin-bottom: 16px;">CDB e Tesouro Selic pagam IR regressivo; LCI/LCA são isentas. Use taxas anuais líquidas equivalentes.</p>';
+  html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
+  html += '<div class="form-group"><label>Valor (R$)</label><input type="text" class="form-input" id="cp-valor" value="' + f.valor + '" placeholder="Ex.: 10.000,00"></div>';
+  html += '<div class="form-group"><label>Prazo (anos)</label><input type="text" class="form-input" id="cp-anos" value="' + f.anos + '" placeholder="Ex.: 2"></div>';
+  html += '<div class="form-group"><label>CDB — taxa ao ano (%)</label><input type="text" class="form-input" id="cp-cdb" value="' + f.cdb + '"></div>';
+  html += '<div class="form-group"><label>Tesouro Selic — taxa ao ano (%)</label><input type="text" class="form-input" id="cp-tesouro" value="' + f.tesouro + '"></div>';
+  html += '<div class="form-group"><label>LCI/LCA — taxa ao ano (%)</label><input type="text" class="form-input" id="cp-lci" value="' + f.lci + '"></div>';
+  html += '</div>';
+  html += '<button class="btn-primary" style="width: 100%; justify-content: center;" id="cp-calcular">' + icons.calculator + ' Comparar</button>';
+  html += '</div>';
+
+  const r = state.comparaResult;
+  if (r) {
+    html += '<div class="card" style="margin-bottom: 24px;">';
+    html += '<h3 class="font-serif" style="margin-bottom: 16px;">Resultado final</h3>';
+    html += resultRow('CDB (' + r.taxaCdb + '% a.a.)', formatCurrency(r.montCdb), r.melhor === 'CDB');
+    html += resultRow('Tesouro Selic (' + r.taxaTesouro + '% a.a.)', formatCurrency(r.montTesouro), r.melhor === 'Tesouro');
+    html += resultRow('LCI/LCA (' + r.taxaLci + '% a.a. — isenta)', formatCurrency(r.montLci), r.melhor === 'LCI');
+    html += '<p style="color: var(--moss); font-weight: 600; margin-top: 12px;">Melhor opção: ' + r.melhor + '</p>';
+    html += '<p style="color: var(--muted-foreground); font-size: 0.8rem; margin-top: 8px;">Comparação sem IR sobre CDB/Tesouro. Para valores e prazos reais, calcule o IR regressivo (22,5% a 15%).</p>';
+    html += '</div>';
+  }
+
+  return toolPage('Comparador de investimentos', 'CDB vs Tesouro Selic vs LCI/LCA lado a lado.', html);
+}
+
+// ---- Ferramenta: Reserva de emergência ----
+function renderReservaPage() {
+  const f = state.reservaForm;
+  let html = '';
+
+  html += '<div class="card" style="margin-bottom: 24px;">';
+  html += '<h3 class="font-serif" style="margin-bottom: 16px;">Quanto preciso de reserva?</h3>';
+  html += '<div class="form-group"><label>Gastos essenciais mensais (R$)</label><input type="text" class="form-input" id="rs-gastos" value="' + f.gastos + '" placeholder="Ex.: 3.500,00"></div>';
+  html += '<div class="form-group"><label>Reserva atual (R$)</label><input type="text" class="form-input" id="rs-atual" value="' + f.reservaAtual + '" placeholder="Ex.: 5.000,00"></div>';
+  html += '<div class="form-group"><label>Aporte mensal para a reserva (R$)</label><input type="text" class="form-input" id="rs-aporte" value="' + f.aporte + '" placeholder="Ex.: 500,00"></div>';
+  html += '<button class="btn-primary" style="width: 100%; justify-content: center;" id="rs-calcular">' + icons.calculator + ' Calcular</button>';
+  html += '</div>';
+
+  const r = state.reservaResult;
+  if (r) {
+    html += '<div class="card" style="margin-bottom: 24px;">';
+    html += '<h3 class="font-serif" style="margin-bottom: 16px;">Resultado</h3>';
+    html += resultRow('Meta (6 meses de gastos)', formatCurrency(r.meta), true);
+    html += resultRow('Falta acumular', formatCurrency(r.falta));
+    html += resultRow('Progresso atual', r.progresso + '%');
+    if (r.mesesFalta !== null) {
+      html += resultRow('Tempo estimado', formatPrazo(r.mesesFalta) + ' com aporte de ' + formatCurrency(r.aporte) + '/mês');
+    }
+    html += '</div>';
+  }
+
+  return toolPage('Reserva de emergência', 'Calcule sua meta de reserva e quanto tempo falta para chegar lá.', html);
+}
+
+// ---- Ferramenta: FGTS ----
+function renderFgtsPage() {
+  const f = state.fgtsForm;
+  let html = '';
+
+  html += '<div class="card" style="margin-bottom: 24px;">';
+  html += '<h3 class="font-serif" style="margin-bottom: 12px;">Projeção do FGTS</h3>';
+  html += '<p style="color: var(--muted-foreground); font-size: 0.8rem; margin-bottom: 16px;">Rendimento médio de TR + 3% ao ano. Use a taxa aproximada em "% ao ano".</p>';
+  html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
+  html += '<div class="form-group"><label>Saldo atual (R$)</label><input type="text" class="form-input" id="fg-saldo" value="' + f.saldo + '" placeholder="Ex.: 15.000,00"></div>';
+  html += '<div class="form-group"><label>Depósito mensal (8% do salário, R$)</label><input type="text" class="form-input" id="fg-deposito" value="' + f.deposito + '" placeholder="Ex.: 200,00"></div>';
+  html += '<div class="form-group"><label>Taxa ao ano (%)</label><input type="text" class="form-input" id="fg-taxa" value="' + f.taxa + '" placeholder="Ex.: 4"></div>';
+  html += '<div class="form-group"><label>Prazo (anos)</label><input type="text" class="form-input" id="fg-anos" value="' + f.anos + '" placeholder="Ex.: 10"></div>';
+  html += '</div>';
+  html += '<button class="btn-primary" style="width: 100%; justify-content: center;" id="fg-calcular">' + icons.calculator + ' Calcular projeção</button>';
+  html += '</div>';
+
+  const r = state.fgtsResult;
+  if (r) {
+    html += '<div class="card" style="margin-bottom: 24px;">';
+    html += '<h3 class="font-serif" style="margin-bottom: 16px;">Projeção</h3>';
+    html += resultRow('Saldo futuro estimado', formatCurrency(r.montante), true);
+    html += resultRow('Total de depósitos no período', formatCurrency(r.depositos));
+    html += resultRow('Rendimento acumulado', formatCurrency(r.rendimento));
+    html += '</div>';
+  }
+
+  return toolPage('Calculadora FGTS', 'Projete o saldo do FGTS com depósitos mensais e juros compostos.', html);
+}
+
 function renderBloqueado(titulo) {
   return `
     <button class="page-header" data-back>
@@ -1873,6 +2141,174 @@ function bindEvents() {
       state.amortizacaoForm = { valor: '', taxaAnual: '', prazo: '' };
       state.showAmortizacaoForm = false;
       state.amortizacaoResult = null;
+      render();
+    });
+  }
+
+  // ---- Quitar financiamento ----
+  const qtInputs = [
+    ['qt-saldo', v => state.quitarForm.saldo = v],
+    ['qt-taxa', v => state.quitarForm.taxaAnual = v],
+    ['qt-parcela', v => state.quitarForm.parcela = v],
+    ['qt-restantes', v => state.quitarForm.restantes = v],
+    ['qt-valor', v => state.quitarValor = v]
+  ];
+  qtInputs.forEach(([id, setter]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => setter(el.value));
+  });
+
+  const qtCalcular = document.getElementById('qt-calcular');
+  if (qtCalcular) {
+    qtCalcular.addEventListener('click', () => {
+      const saldo = parseCurrency(state.quitarForm.saldo);
+      const taxaAnual = parseTaxa(state.quitarForm.taxaAnual);
+      const parcela = parseCurrency(state.quitarForm.parcela);
+      const restantes = parseInt(state.quitarForm.restantes) || 0;
+      const valorExtra = parseCurrency(state.quitarValor);
+      if (saldo <= 0 || parcela <= 0 || taxaAnual <= 0) {
+        alert('Preencha saldo devedor, taxa e parcela corretamente.');
+        return;
+      }
+      if (valorExtra <= 0) {
+        alert('Informe um valor a amortizar maior que zero.');
+        return;
+      }
+      state.quitarResult = simularQuitar(saldo, taxaAnual, parcela, restantes, valorExtra);
+      render();
+    });
+  }
+
+  // ---- Juros compostos ----
+  const jcInputs = [
+    ['jc-inicial', v => state.jurosForm.inicial = v],
+    ['jc-aporte', v => state.jurosForm.aporte = v],
+    ['jc-taxa', v => state.jurosForm.taxa = v],
+    ['jc-anos', v => state.jurosForm.anos = v]
+  ];
+  jcInputs.forEach(([id, setter]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => setter(el.value));
+  });
+
+  const jcCalcular = document.getElementById('jc-calcular');
+  if (jcCalcular) {
+    jcCalcular.addEventListener('click', () => {
+      const inicial = parseCurrency(state.jurosForm.inicial);
+      const aporte = parseCurrency(state.jurosForm.aporte);
+      const taxaAnual = parseTaxa(state.jurosForm.taxa);
+      const anos = parseInt(state.jurosForm.anos) || 0;
+      if (taxaAnual <= 0 || anos <= 0) {
+        alert('Informe taxa e prazo maiores que zero.');
+        return;
+      }
+      const i = taxaAnual / 100 / 12;
+      const meses = anos * 12;
+      const fator = Math.pow(1 + i, meses);
+      const montante = inicial * fator + aporte * ((fator - 1) / i);
+      const investido = inicial + aporte * meses;
+      state.jurosResult = { montante, investido, juros: montante - investido, meses };
+      render();
+    });
+  }
+
+  // ---- Comparador ----
+  const cpInputs = [
+    ['cp-valor', v => state.comparaForm.valor = v],
+    ['cp-anos', v => state.comparaForm.anos = v],
+    ['cp-cdb', v => state.comparaForm.cdb = v],
+    ['cp-tesouro', v => state.comparaForm.tesouro = v],
+    ['cp-lci', v => state.comparaForm.lci = v]
+  ];
+  cpInputs.forEach(([id, setter]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => setter(el.value));
+  });
+
+  const cpCalcular = document.getElementById('cp-calcular');
+  if (cpCalcular) {
+    cpCalcular.addEventListener('click', () => {
+      const valor = parseCurrency(state.comparaForm.valor);
+      const anos = parseInt(state.comparaForm.anos) || 0;
+      const taxaCdb = parseTaxa(state.comparaForm.cdb);
+      const taxaTesouro = parseTaxa(state.comparaForm.tesouro);
+      const taxaLci = parseTaxa(state.comparaForm.lci);
+      if (valor <= 0 || anos <= 0) {
+        alert('Informe valor e prazo maiores que zero.');
+        return;
+      }
+      const f = t => valor * Math.pow(1 + t / 100, anos);
+      const montCdb = f(taxaCdb);
+      const montTesouro = f(taxaTesouro);
+      const montLci = f(taxaLci);
+      let melhor = 'CDB';
+      if (montTesouro >= montCdb && montTesouro >= montLci) melhor = 'Tesouro';
+      else if (montLci >= montCdb && montLci >= montTesouro) melhor = 'LCI';
+      state.comparaResult = { montCdb, montTesouro, montLci, melhor, taxaCdb, taxaTesouro, taxaLci };
+      render();
+    });
+  }
+
+  // ---- Reserva ----
+  const rsInputs = [
+    ['rs-gastos', v => state.reservaForm.gastos = v],
+    ['rs-atual', v => state.reservaForm.reservaAtual = v],
+    ['rs-aporte', v => state.reservaForm.aporte = v]
+  ];
+  rsInputs.forEach(([id, setter]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => setter(el.value));
+  });
+
+  const rsCalcular = document.getElementById('rs-calcular');
+  if (rsCalcular) {
+    rsCalcular.addEventListener('click', () => {
+      const gastos = parseCurrency(state.reservaForm.gastos);
+      const reservaAtual = parseCurrency(state.reservaForm.reservaAtual);
+      const aporte = parseCurrency(state.reservaForm.aporte);
+      if (gastos <= 0) {
+        alert('Informe seus gastos essenciais mensais.');
+        return;
+      }
+      const meta = gastos * 6;
+      const falta = Math.max(0, meta - reservaAtual);
+      const progresso = meta > 0 ? Math.min(100, Math.round((reservaAtual / meta) * 100)) : 0;
+      let mesesFalta = null;
+      if (falta > 0 && aporte > 0) mesesFalta = Math.ceil(falta / aporte);
+      state.reservaResult = { meta, falta, progresso, mesesFalta, aporte };
+      render();
+    });
+  }
+
+  // ---- FGTS ----
+  const fgInputs = [
+    ['fg-saldo', v => state.fgtsForm.saldo = v],
+    ['fg-deposito', v => state.fgtsForm.deposito = v],
+    ['fg-taxa', v => state.fgtsForm.taxa = v],
+    ['fg-anos', v => state.fgtsForm.anos = v]
+  ];
+  fgInputs.forEach(([id, setter]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => setter(el.value));
+  });
+
+  const fgCalcular = document.getElementById('fg-calcular');
+  if (fgCalcular) {
+    fgCalcular.addEventListener('click', () => {
+      const saldo = parseCurrency(state.fgtsForm.saldo);
+      const deposito = parseCurrency(state.fgtsForm.deposito);
+      const taxaAnual = parseTaxa(state.fgtsForm.taxa);
+      const anos = parseInt(state.fgtsForm.anos) || 0;
+      if (taxaAnual <= 0 || anos <= 0) {
+        alert('Informe taxa e prazo maiores que zero.');
+        return;
+      }
+      const i = taxaAnual / 100 / 12;
+      const meses = anos * 12;
+      const fator = Math.pow(1 + i, meses);
+      const montante = saldo * fator + deposito * ((fator - 1) / i);
+      const depositos = deposito * meses;
+      state.fgtsResult = { montante, depositos, rendimento: montante - saldo - depositos };
       render();
     });
   }
